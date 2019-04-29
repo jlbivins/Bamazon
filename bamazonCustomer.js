@@ -2,101 +2,65 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 
 const connection = mysql.createConnection({
-   host: "127.0.0.1",
-   post: 3306,
-   user: "root",
-   password: "root",
-   database: "bamazon"
+  host: "127.0.0.1",
+  post: 3306,
+  user: "root",
+  password: "root",
+  database: "bamazon"
 });
 
-connection.connect(function(err){
-     if(err) throw err;
-     console.log("Connected as ID " + connection.threadID);
-     getAll();
-});   
-    const getAll = function() {
-     connection.query("SELECT * FROM products", function(err, result){
-      if (err) throw err;
-         console.table(result);
-         connection.end(); 
-      buyer_prompts();    
-    });
-    
-    function buyer_prompts(){
-      inquirer
-      .prompt({
+connection.connect(function (err) {
+  if (err) throw err;
+  // console.log("Connected as ID " + connection.threadID);
+  getAll();
+});
+const getAll = function () {
+  connection.query("SELECT * FROM products", function (err, result) {
+    if (err) throw err;
+    console.table(result);
+
+    buyer_prompts(result);
+  });
+
+  function buyer_prompts(result) {
+    inquirer
+      .prompt([{
         name: "id",
         type: "input",
         message: "What is the id of product you would like to buy?"
-      })
-    }
-    
-    }
+      }, {
+        name: "quantity",
+        type: "input",
+        message: "How many do you want to buy?"
+      }
+      ]).then(function (answer) {
+        //console.log(answer)
+        //console.log(result);
+        for (let i = 0; i < result.length; i++) {
+          var current_item = result[i];
+          if (current_item.item_id == answer.id) {
+            console.log("current item", current_item.item_id);
+            if (current_item.stock_quantity >= answer.quantity) {
+              var query_string = `UPDATE products SET stock_quantity = stock_quantity -  ${answer.quantity} WHERE item_id = 
+                               ${answer.id}`
+              connection.query(query_string, function (err, data) {
+                console.log("Thank you for your order, total = ", answer.quantity * current_item.price);
+                connection.end()
+              })
 
-    // function getAll() {
-    //     console.log("Inserting a item in playlist...\n");
-    //     var query = connection.query(
-    //       "INSERT INTO playlist SET ?",
-    //       {
-    //         title: "7 rings",
-    //         artist: "ariana grande",
-    //         genre: "pop"
-    //       },
-    //       function(err, res) {
-    //         console.log(res.affectedRows + " product inserted!\n");
-    //         // Call updateProduct AFTER the INSERT completes
-    //         updateProduct();
-    //       }
-    //     );
-      
-    //     // logs the actual query being run
-    //     console.log(query.sql);
-    //   }
-      
-    //   function updateProduct() {
-    //     console.log("Updating playlist...\n");
-    //     var query = connection.query(
-    //       "UPDATE playlist SET ? WHERE ?",
-    //       [
-    //         {
-    //           artist: 
-    //         },
-    //         {
-    //           flavor: "Rocky Road"
-    //         }
-    //       ],
-    //       function(err, res) {
-    //         console.log(res.affectedRows + " products updated!\n");
-    //         // Call deleteProduct AFTER the UPDATE completes
-    //         deleteProduct();
-    //       }
-    //     );
-      
-    //     // logs the actual query being run
-    //     console.log(query.sql);
-    //   }
-      
-    //   function deleteProduct() {
-    //     console.log("Deleting all strawberry icecream...\n");
-    //     connection.query(
-    //       "DELETE FROM products WHERE ?",
-    //       {
-    //         flavor: "strawberry"
-    //       },
-    //       function(err, res) {
-    //         console.log(res.affectedRows + " products deleted!\n");
-    //         // Call readProducts AFTER the DELETE completes
-    //         readProducts();
-    //       }
-    //     );
-    //   }
-      
-    //   function readProducts() {
-    //     console.log("Selecting all products...\n");
-    //     connection.query("SELECT * FROM products", function(err, res) {
-    //       if (err) throw err;
-    //       // Log all results of the SELECT statement
-    //       console.log(res);
-    //       connection.end();
-    //     });
-      // }
+            }
+            else {
+              console.log("insufficent quantity");
+              connection.end();
+            }
+            break;
+          }
+
+
+        }
+      })
+
+  }
+
+}
+
