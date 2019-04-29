@@ -14,7 +14,7 @@ INSERT INTO products (product_name, department, price, stock_quantity)
 VALUES ("shovel", "tools", 10, 100);
 
 INSERT INTO products (product_name, department, price, stock_quantity)
-VALUES ("baseball", "sports", 5, 2);
+VALUES ("baseball", "sports", 7, 2);
 
 INSERT INTO products (product_name, department, price, stock_quantity)
 VALUES ("footballs", "sports", 5, 5);
